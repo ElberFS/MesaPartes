@@ -24,6 +24,12 @@
                                 {{ __('Gestión de Usuarios') }}
                             </flux:navlist.item>
                         @endrole
+
+                        @role('administrador|secretaria')
+                            <flux:navlist.item icon="users" :href="route('documents.index')" :current="request()->routeIs('documents.*')" wire:navigate>
+                                {{ __('Gestión de Documentos') }}
+                            </flux:navlist.item>
+                        @endrole
                     @endauth
                 </flux:navlist.group>
             </flux:navlist>

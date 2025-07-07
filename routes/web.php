@@ -8,6 +8,10 @@ use App\Livewire\Admin\Offices\EditOffice;
 use App\Livewire\Admin\Users\ListUsers;
 use App\Livewire\Admin\Users\CreateUser;
 use App\Livewire\Admin\Users\EditUser;
+use App\Livewire\Other\Documents\CreateDocument;
+use App\Livewire\Other\Documents\ListDocuments;
+use App\Livewire\Other\Documents\EditDocument;
+use App\Http\Controllers\DocumentController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -38,5 +42,15 @@ Route::middleware(['role:administrador'])->group(function () {
         Route::get('/{user}/edit', EditUser::class)->name('edit');
     });
 });
+
+Route::middleware(['role:secretaria|administrador'])->group(function () {
+     Route::prefix('admin/documents')->name('documents.')->group(function () { // CAMBIO AQUÍ
+        Route::get('/', ListDocuments::class)->name('index');
+        Route::get('/create', CreateDocument::class)->name('create');
+        Route::get('/{document}/edit', EditDocument::class)->name('edit');
+        Route::get('/{document}/view-file', [DocumentController::class, 'viewFile'])->name('view-file');
+    });
+});
+
 
 require __DIR__.'/auth.php';

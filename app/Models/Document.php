@@ -20,7 +20,15 @@ class Document extends Model
         'subject',
         'origin_type',
         'origin_office_id',
-        'external_person_id',
+        // Eliminado 'external_person_id'
+
+        // Nuevos campos para origen externo (en inglés)
+        'organization_name',
+        'external_contact_person',
+        'external_contact_role',
+        'event_date',
+        'event_time',
+
         'reference',
         'origin_in_charge',
         'summary',
@@ -31,6 +39,20 @@ class Document extends Model
     ];
 
     /**
+     * The attributes that should be cast.
+     * Los atributos que deben ser convertidos a tipos nativos.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'registration_date' => 'date',           // Convierte la fecha de registro a un objeto Carbon
+        'event_date' => 'date',                  // Convierte la fecha del evento a un objeto Carbon
+        'event_time' => 'datetime',              // Convierte la hora del evento a un objeto Carbon (hora sin fecha)
+        // 'status' => \App\Enums\DocumentStatus::class, // Descomenta si usas un Enum para el estado
+    ];
+
+
+    /**
      * Get the office that originated the document.
      * Obtener la oficina que originó el documento.
      */
@@ -39,14 +61,13 @@ class Document extends Model
         return $this->belongsTo(Office::class, 'origin_office_id');
     }
 
-    /**
-     * Get the external person that originated the document.
-     * Obtener la persona externa que originó el documento.
-     */
+    // Eliminada la relación externalPerson() ya que la tabla external_people fue removida o sus campos integrados aquí.
+    /*
     public function externalPerson()
     {
         return $this->belongsTo(ExternalPerson::class);
     }
+    */
 
     /**
      * Get the file associated with the document.

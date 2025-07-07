@@ -28,16 +28,27 @@ class StoreDocumentRequest extends FormRequest
     {
         return [
             'code' => ['required', 'string', 'max:255', 'unique:documents,code'], // Código único
-            'subject' => ['required', 'string', 'max:255'],
+            'subject' => ['required', 'string', 'max:255'], // Asunto del documento
             'origin_type' => ['required', 'in:internal,external'], // Debe ser 'internal' o 'external'
-            'origin_office_id' => ['required_if:origin_type,internal', 'nullable', 'integer', 'exists:offices,id'], // Requerido si es interno
-            'external_person_id' => ['required_if:origin_type,external', 'nullable', 'integer', 'exists:external_people,id'], // Requerido si es externo
-            'reference' => ['nullable', 'string', 'max:255'],
-            'origin_in_charge' => ['nullable', 'string', 'max:255'],
-            'summary' => ['nullable', 'string'],
+
+            // Regla para la oficina de origen (requerida si el tipo de origen es interno)
+            'origin_office_id' => ['required_if:origin_type,internal', 'nullable', 'integer', 'exists:offices,id'],
+
+            // Nuevas reglas para los campos de origen externo (ahora completamente opcionales)
+            'organization_name' => ['nullable', 'string', 'max:255'],
+            'external_contact_person' => ['nullable', 'string', 'max:255'],
+            'external_contact_role' => ['nullable', 'string', 'max:255'],
+
+            // Nuevas reglas para la fecha y hora del evento/convenio (opcionales)
+            'event_date' => ['nullable', 'date'],
+            'event_time' => ['nullable', 'date_format:H:i'], // Formato de hora HH:MM
+
+            'reference' => ['nullable', 'string', 'max:255'], // Referencia del documento
+            'origin_in_charge' => ['nullable', 'string', 'max:255'], // Encargado de origen
+            'summary' => ['nullable', 'string'], // Resumen del documento
             'file' => ['required', 'file', 'mimes:pdf,doc,docx', 'max:10240'], // Archivo PDF o Word, max 10MB
-            'priority_id' => ['required', 'integer', 'exists:priorities,id'],
-            'registration_date' => ['required', 'date'],
+            'priority_id' => ['required', 'integer', 'exists:priorities,id'], // Prioridad del documento
+            'registration_date' => ['required', 'date'], // Fecha de registro del documento
             // 'status' no se valida aquí, ya que se establece por defecto al crear.
         ];
     }
@@ -56,10 +67,21 @@ class StoreDocumentRequest extends FormRequest
             'subject.required' => 'El asunto del documento es obligatorio.',
             'origin_type.required' => 'El tipo de origen es obligatorio.',
             'origin_type.in' => 'El tipo de origen debe ser interno o externo.',
+
             'origin_office_id.required_if' => 'Debe seleccionar una oficina de origen para documentos internos.',
             'origin_office_id.exists' => 'La oficina de origen seleccionada no es válida.',
-            'external_person_id.required_if' => 'Debe seleccionar una persona externa de origen para documentos externos.',
-            'external_person_id.exists' => 'La persona externa seleccionada no es válida.',
+
+            // Mensajes para los campos de origen externo (ahora opcionales)
+            'organization_name.string' => 'El nombre de la organización debe ser una cadena de texto.',
+            'organization_name.max' => 'El nombre de la organización no debe exceder los :max caracteres.',
+            'external_contact_person.string' => 'El nombre del encargado externo debe ser una cadena de texto.',
+            'external_contact_person.max' => 'El nombre del encargado externo no debe exceder los :max caracteres.',
+            'external_contact_role.string' => 'El cargo del encargado externo debe ser una cadena de texto.',
+            'external_contact_role.max' => 'El cargo del encargado externo no debe exceder los :max caracteres.',
+
+            'event_date.date' => 'La fecha del evento debe ser una fecha válida.',
+            'event_time.date_format' => 'La hora del evento debe tener el formato HH:MM.',
+
             'file.required' => 'Debe adjuntar un archivo al documento.',
             'file.file' => 'El adjunto debe ser un archivo.',
             'file.mimes' => 'El archivo debe ser de tipo PDF, DOC o DOCX.',
