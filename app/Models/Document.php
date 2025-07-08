@@ -20,7 +20,6 @@ class Document extends Model
         'subject',
         'origin_type',
         'origin_office_id',
-        // Eliminado 'external_person_id'
 
         // Nuevos campos para origen externo (en inglés)
         'organization_name',
@@ -36,6 +35,7 @@ class Document extends Model
         'priority_id',
         'registration_date',
         'status',
+        'indication', // ¡Nuevo campo añadido aquí!
     ];
 
     /**
@@ -48,7 +48,9 @@ class Document extends Model
         'registration_date' => 'date',           // Convierte la fecha de registro a un objeto Carbon
         'event_date' => 'date',                  // Convierte la fecha del evento a un objeto Carbon
         'event_time' => 'datetime',              // Convierte la hora del evento a un objeto Carbon (hora sin fecha)
-        // 'status' => \App\Enums\DocumentStatus::class, // Descomenta si usas un Enum para el estado
+        // Si tienes enums de PHP 8.1+, podrías castear 'status' e 'indication' así:
+        // 'status' => \App\Enums\DocumentStatus::class,
+        // 'indication' => \App\Enums\DocumentIndication::class,
     ];
 
 
@@ -60,14 +62,6 @@ class Document extends Model
     {
         return $this->belongsTo(Office::class, 'origin_office_id');
     }
-
-    // Eliminada la relación externalPerson() ya que la tabla external_people fue removida o sus campos integrados aquí.
-    /*
-    public function externalPerson()
-    {
-        return $this->belongsTo(ExternalPerson::class);
-    }
-    */
 
     /**
      * Get the file associated with the document.

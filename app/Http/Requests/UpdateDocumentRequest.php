@@ -57,7 +57,26 @@ class UpdateDocumentRequest extends FormRequest
             'newFile' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
             'priority_id' => ['required', 'integer', 'exists:priorities,id'],
             'registration_date' => ['required', 'date'],
-            'status' => ['required', 'in:in_process,responded,archived'], // El estado también puede ser actualizado
+            // Estado del documento con valores en español
+            'status' => ['required', 'in:en_proceso,respondido,archivado'],
+            // Nueva regla para las indicaciones (nullable)
+            'indication' => ['nullable', 'in:' . implode(',', [
+                'tomar_conocimiento',
+                'acciones_necesarias',
+                'opinar',
+                'preparar_respuesta',
+                'informar',
+                'coordinar_accion',
+                'difundir',
+                'preparar_resolucion',
+                'remitir_antecedentes',
+                'archivo_provisional',
+                'devolver_oficina_origen',
+                'atender',
+                'acumular_respuestas',
+                'archivo',
+                'acumular_al_expediente',
+            ])],
         ];
     }
 
@@ -99,6 +118,7 @@ class UpdateDocumentRequest extends FormRequest
             'registration_date.date' => 'La fecha de registro debe ser una fecha válida.',
             'status.required' => 'El estado del documento es obligatorio.',
             'status.in' => 'El estado del documento no es válido.',
+            'indication.in' => 'La indicación seleccionada no es válida.',
         ];
     }
 }

@@ -39,9 +39,10 @@ class EditDocument extends Component
     public $priority_id = null; // Inicializa a null
     public $registration_date;
     public $status = '';
+    public $indication = null; // Nuevo campo para las indicaciones
 
     public $offices = [];
-    public $priorities = []; // Ya no se necesita externalPeople
+    public $priorities = [];
 
     /**
      * Monta el componente, inicializando las propiedades con los datos del documento.
@@ -71,6 +72,7 @@ class EditDocument extends Component
         $this->priority_id = $document->priority_id;
         $this->registration_date = $document->registration_date->toDateString(); // Asegura formato de string para input date
         $this->status = $document->status;
+        $this->indication = $document->indication; // Inicializa el nuevo campo 'indication'
 
         // Si hay un archivo asociado, guarda su ruta para mostrarlo
         if ($document->file) {
@@ -160,7 +162,7 @@ class EditDocument extends Component
             $this->document->update($validatedData);
 
             // 7. Resetea la propiedad del nuevo archivo después de la actualización
-            $this->reset('newFile');
+            $this->reset('newFile'); // Solo resetea 'newFile' si es lo único que se necesita
 
             // 8. Muestra mensaje de éxito
             session()->flash('status', 'Documento actualizado exitosamente.');
@@ -183,6 +185,27 @@ class EditDocument extends Component
      */
     public function render()
     {
-        return view('livewire.other.documents.edit-document');
+        // Opciones para el campo 'indication'
+        $indicationOptions = [
+            'tomar_conocimiento' => 'Tomar Conocimiento',
+            'acciones_necesarias' => 'Acciones Necesarias',
+            'opinar' => 'Opinar',
+            'preparar_respuesta' => 'Preparar Respuesta',
+            'informar' => 'Informar',
+            'coordinar_accion' => 'Coordinar Acción',
+            'difundir' => 'Difundir',
+            'preparar_resolucion' => 'Preparar Resolución',
+            'remitir_antecedentes' => 'Remitir Antecedentes',
+            'archivo_provisional' => 'Archivo Provisional',
+            'devolver_oficina_origen' => 'Devolver Oficina de Origen',
+            'atender' => 'Atender',
+            'acumular_respuestas' => 'Acumular Respuestas',
+            'archivo' => 'Archivo',
+            'acumular_al_expediente' => 'Acumular al Expediente',
+        ];
+
+        return view('livewire.other.documents.edit-document', [
+            'indicationOptions' => $indicationOptions,
+        ]);
     }
 }

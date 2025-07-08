@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule; // Importa la clase Rule para validaciones condicionales
 
 class StoreDocumentRequest extends FormRequest
 {
@@ -49,7 +50,26 @@ class StoreDocumentRequest extends FormRequest
             'file' => ['required', 'file', 'mimes:pdf,doc,docx', 'max:10240'], // Archivo PDF o Word, max 10MB
             'priority_id' => ['required', 'integer', 'exists:priorities,id'], // Prioridad del documento
             'registration_date' => ['required', 'date'], // Fecha de registro del documento
-            // 'status' no se valida aquí, ya que se establece por defecto al crear.
+            // Estado del documento con valores en español
+            'status' => ['nullable', 'in:en_proceso,respondido,archivado'], // 'status' puede ser nulo si se usa el valor por defecto de la DB
+            // Nueva regla para las indicaciones (nullable)
+            'indication' => ['nullable', 'in:' . implode(',', [
+                'tomar_conocimiento',
+                'acciones_necesarias',
+                'opinar',
+                'preparar_respuesta',
+                'informar',
+                'coordinar_accion',
+                'difundir',
+                'preparar_resolucion',
+                'remitir_antecedentes',
+                'archivo_provisional',
+                'devolver_oficina_origen',
+                'atender',
+                'acumular_respuestas',
+                'archivo',
+                'acumular_al_expediente',
+            ])],
         ];
     }
 
@@ -90,6 +110,8 @@ class StoreDocumentRequest extends FormRequest
             'priority_id.exists' => 'La prioridad seleccionada no es válida.',
             'registration_date.required' => 'La fecha de registro es obligatoria.',
             'registration_date.date' => 'La fecha de registro debe ser una fecha válida.',
+            'status.in' => 'El estado del documento no es válido.',
+            'indication.in' => 'La indicación seleccionada no es válida.',
         ];
     }
 }

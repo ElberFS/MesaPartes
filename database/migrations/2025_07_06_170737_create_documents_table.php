@@ -11,6 +11,7 @@ return new class extends Migration
      * Crea la tabla 'documents' para registrar los documentos del sistema.
      * Se han modificado los campos relacionados con el origen externo
      * para incluir detalles de organización y eventos, usando nombres en inglés.
+     * Se han actualizado los estados y añadido un campo para indicaciones.
      */
     public function up(): void
     {
@@ -44,7 +45,29 @@ return new class extends Migration
             $table->foreignId('priority_id')->constrained('priorities')->onDelete('restrict'); // Restringe eliminación si hay documentos asociados.
 
             $table->date('registration_date'); // Fecha de registro del documento.
-            $table->enum('status', ['in_process', 'responded', 'archived'])->default('in_process'); // Estado del documento.
+
+            // Estado del documento con valores en español, pero el nombre de la columna en inglés.
+            $table->enum('status', ['en_proceso', 'respondido', 'archivado'])->default('en_proceso');
+
+            // Nueva columna para las indicaciones con valores en español, nombre de columna en inglés.
+            $table->enum('indication', [
+                'tomar_conocimiento',
+                'acciones_necesarias',
+                'opinar',
+                'preparar_respuesta',
+                'informar',
+                'coordinar_accion',
+                'difundir',
+                'preparar_resolucion',
+                'remitir_antecedentes',
+                'archivo_provisional',
+                'devolver_oficina_origen',
+                'atender',
+                'acumular_respuestas',
+                'archivo',
+                'acumular_al_expediente',
+            ])->nullable(); // Puede ser nulo si no hay una indicación específica.
+
             $table->timestamps(); // Columnas 'created_at' y 'updated_at'.
         });
     }

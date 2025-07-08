@@ -39,6 +39,8 @@ class CreateDocument extends Component
     public $file; // Para la subida de archivos (¡sin .live!)
     public $priority_id = null; // Inicializa a null para que el selector no tenga una opción preseleccionada
     public $registration_date;
+    public $status = 'en_proceso'; // Inicializa con el nuevo valor por defecto en español
+    public $indication = null; // Nuevo campo para las indicaciones
 
     // Listas para poblar los selectores en la vista
     public $offices = [];
@@ -145,7 +147,8 @@ class CreateDocument extends Component
                 'code', 'subject', 'origin_type', 'origin_office_id',
                 'organization_name', 'external_contact_person', 'external_contact_role',
                 'event_date', 'event_time',
-                'reference', 'origin_in_charge', 'summary', 'file', 'priority_id'
+                'reference', 'origin_in_charge', 'summary', 'file', 'priority_id',
+                'status', 'indication' // Añadido el nuevo campo 'indication' y 'status'
             ]);
             // Restablece la fecha de registro a la fecha actual.
             $this->registration_date = now()->toDateString();
@@ -176,6 +179,27 @@ class CreateDocument extends Component
      */
     public function render()
     {
-        return view('livewire.other.documents.create-document');
+        // Opciones para el campo 'indication'
+        $indicationOptions = [
+            'tomar_conocimiento' => 'Tomar Conocimiento',
+            'acciones_necesarias' => 'Acciones Necesarias',
+            'opinar' => 'Opinar',
+            'preparar_respuesta' => 'Preparar Respuesta',
+            'informar' => 'Informar',
+            'coordinar_accion' => 'Coordinar Acción',
+            'difundir' => 'Difundir',
+            'preparar_resolucion' => 'Preparar Resolución',
+            'remitir_antecedentes' => 'Remitir Antecedentes',
+            'archivo_provisional' => 'Archivo Provisional',
+            'devolver_oficina_origen' => 'Devolver Oficina de Origen',
+            'atender' => 'Atender',
+            'acumular_respuestas' => 'Acumular Respuestas',
+            'archivo' => 'Archivo',
+            'acumular_al_expediente' => 'Acumular al Expediente',
+        ];
+
+        return view('livewire.other.documents.create-document', [
+            'indicationOptions' => $indicationOptions,
+        ]);
     }
 }

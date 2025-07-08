@@ -23,9 +23,9 @@
 
             <select wire:model.live="filterStatus" class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline w-full">
                 <option value="">Todos los Estados</option>
-                <option value="in_process">En Proceso</option>
-                <option value="responded">Respondido</option>
-                <option value="archived">Archivado</option>
+                <option value="en_proceso">En Proceso</option>
+                <option value="respondido">Respondido</option>
+                <option value="archivado">Archivado</option>
             </select>
 
             <select wire:model.live="filterPriority" class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline w-full">
@@ -39,6 +39,14 @@
                 <option value="">Todos los Orígenes</option>
                 <option value="internal">Interno</option>
                 <option value="external">Externo</option>
+            </select>
+
+            {{-- Nuevo filtro por Indicación --}}
+            <select wire:model.live="filterIndication" class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline w-full">
+                <option value="">Todas las Indicaciones</option>
+                @foreach ($indicationOptions as $key => $value)
+                    <option value="{{ $key }}">{{ $value }}</option>
+                @endforeach
             </select>
 
             <select wire:model.live="perPage" class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline w-full">
@@ -74,6 +82,7 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prioridad</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Reg.</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Indicación</th> {{-- Nueva columna para Indicación --}}
                             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                         </tr>
                     </thead>
@@ -129,17 +138,48 @@
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                                         @php
                                             $statusClasses = '';
-                                            if ($document->status === 'in_process') {
+                                            if ($document->status === 'en_proceso') { // Updated to Spanish value
                                                 $statusClasses = 'bg-blue-100 text-blue-800';
-                                            } elseif ($document->status === 'responded') {
+                                            } elseif ($document->status === 'respondido') { // Updated to Spanish value
                                                 $statusClasses = 'bg-purple-100 text-purple-800';
-                                            } else { // archived
+                                            } else { // archivado (Updated to Spanish value)
                                                 $statusClasses = 'bg-gray-100 text-gray-800';
                                             }
                                         @endphp
                                         {{ $statusClasses }}">
-                                        {{ ucfirst(str_replace('_', ' ', $document->status)) }}
+                                        {{-- Display Spanish label for status --}}
+                                        @php
+                                            $statusLabels = [
+                                                'en_proceso' => 'En Proceso',
+                                                'respondido' => 'Respondido',
+                                                'archivado' => 'Archivado',
+                                            ];
+                                            echo $statusLabels[$document->status] ?? ucfirst(str_replace('_', ' ', $document->status));
+                                        @endphp
                                     </span>
+                                </td>
+                                {{-- Celda para Indicación --}}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                    @php
+                                        $indicationLabels = [
+                                            'tomar_conocimiento' => 'Tomar Conocimiento',
+                                            'acciones_necesarias' => 'Acciones Necesarias',
+                                            'opinar' => 'Opinar',
+                                            'preparar_respuesta' => 'Preparar Respuesta',
+                                            'informar' => 'Informar',
+                                            'coordinar_accion' => 'Coordinar Acción',
+                                            'difundir' => 'Difundir',
+                                            'preparar_resolucion' => 'Preparar Resolución',
+                                            'remitir_antecedentes' => 'Remitir Antecedentes',
+                                            'archivo_provisional' => 'Archivo Provisional',
+                                            'devolver_oficina_origen' => 'Devolver Oficina de Origen',
+                                            'atender' => 'Atender',
+                                            'acumular_respuestas' => 'Acumular Respuestas',
+                                            'archivo' => 'Archivo',
+                                            'acumular_al_expediente' => 'Acumular al Expediente',
+                                        ];
+                                        echo $indicationLabels[$document->indication] ?? 'N/A';
+                                    @endphp
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     {{-- Botón "Ver Documento" --}}

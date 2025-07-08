@@ -117,7 +117,7 @@
                             </div>
 
                             <div>
-                                <label for="external_contact_person" class="block text-sm font-medium text-gray-700">Persona  Externa</label>
+                                <label for="external_contact_person" class="block text-sm font-medium text-gray-700">Persona Externa</label>
                                 <input type="text" id="external_contact_person" wire:model.live="external_contact_person"
                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                        placeholder="Ej: Juan Pérez">
@@ -169,28 +169,54 @@
                 <div wire:loading wire:target="file" class="mt-2 text-sm text-indigo-600">Subiendo archivo...</div>
             </div>
 
-            {{-- Fecha de Registro y Botones --}}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+            {{-- Fecha de Registro, Estado y Indicación --}}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
                 <div>
                     <label for="registration_date" class="block text-sm font-medium text-gray-700">Fecha de Registro</label>
                     <input type="date" id="registration_date" wire:model.live="registration_date"
                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                     @error('registration_date') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
-                <div class="flex justify-end space-x-3">
-                    <a href="{{ route('documents.index') }}"
-                       class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium
-                              text-gray-700 bg-white hover:bg-gray-50
-                              focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                       wire:navigate>
-                        Cancelar
-                    </a>
-                    <button type="submit"
-                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm
-                                   text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                        Registrar Documento
-                    </button>
+
+                {{-- Estado del Documento --}}
+                <div>
+                    <label for="status" class="block text-sm font-medium text-gray-700">Estado del Documento</label>
+                    <select id="status" wire:model.live="status"
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="en_proceso">En Proceso</option>
+                        <option value="respondido">Respondido</option>
+                        <option value="archivado">Archivado</option>
+                    </select>
+                    @error('status') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
+
+                {{-- Campo de Indicación --}}
+                <div>
+                    <label for="indication" class="block text-sm font-medium text-gray-700">Indicación</label>
+                    <select id="indication" wire:model.live="indication"
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="">Selecciona una indicación</option>
+                        @foreach ($indicationOptions as $key => $value)
+                            <option value="{{ $key }}">{{ $value }}</option>
+                        @endforeach
+                    </select>
+                    @error('indication') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-3">
+                <a href="{{ route('documents.index') }}"
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium
+                           text-gray-700 bg-white hover:bg-gray-50
+                           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                   wire:navigate>
+                    Cancelar
+                </a>
+                <button type="submit"
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm
+                               text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Registrar Documento
+                </button>
             </div>
         </form>
     </div>

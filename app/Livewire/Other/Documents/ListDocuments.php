@@ -19,6 +19,7 @@ class ListDocuments extends Component
     public $filterStatus = ''; // Filtro por estado
     public $filterPriority = ''; // Filtro por prioridad
     public $filterOriginType = ''; // Filtro por tipo de origen
+    public $filterIndication = ''; // Nuevo filtro por indicación (opcional, si se desea añadir un selector)
 
     public $confirmingDocumentDeletion = false; // Estado para el modal de confirmación
     public $documentToDeleteId = null; // ID del documento a eliminar
@@ -30,7 +31,7 @@ class ListDocuments extends Component
     public function render()
     {
         $documents = Document::query()
-            // Carga relaciones necesarias. 'externalPerson' ha sido removida.
+            // Carga relaciones necesarias.
             ->with(['originOffice', 'file', 'priority'])
             ->when($this->search, function ($query) {
                 $query->where('code', 'like', '%' . $this->search . '%')
@@ -39,7 +40,8 @@ class ListDocuments extends Component
                       // Nuevos campos de búsqueda para origen externo
                       ->orWhere('organization_name', 'like', '%' . $this->search . '%')
                       ->orWhere('external_contact_person', 'like', '%' . $this->search . '%')
-                      ->orWhere('external_contact_role', 'like', '%' . $this->search . '%');
+                      ->orWhere('external_contact_role', 'like', '%' . $this->search . '%')
+                      ->orWhere('indication', 'like', '%' . $this->search . '%'); // Añadido el campo 'indication' a la búsqueda
             })
             ->when($this->filterStatus, function ($query) {
                 $query->where('status', $this->filterStatus);
@@ -50,15 +52,38 @@ class ListDocuments extends Component
             ->when($this->filterOriginType, function ($query) {
                 $query->where('origin_type', $this->filterOriginType);
             })
+            ->when($this->filterIndication, function ($query) { // Nuevo filtro si se decide usar
+                $query->where('indication', $this->filterIndication);
+            })
             ->orderBy('registration_date', 'desc') // Ordena por fecha de registro
             ->paginate($this->perPage);
 
         // Se pasan las prioridades para el filtro en la vista
         $priorities = Priority::all(); // Asegúrate de que este modelo esté importado
 
+        // Opciones para el campo 'indication' (si se desea un filtro select)
+        $indicationOptions = [
+            'tomar_conocimiento',
+            'acciones_necesarias',
+            'opinar',
+            'preparar_respuesta',
+            'informar',
+            'coordinar_accion',
+            'difundir',
+            'preparar_resolucion',
+            'remitir_antecedentes',
+            'archivo_provisional',
+            'devolver_oficina_origen',
+            'atender',
+            'acumular_respuestas',
+            'archivo',
+            'acumular_al_expediente',
+        ];
+
         return view('livewire.other.documents.list-documents', [
             'documents' => $documents,
             'priorities' => $priorities,
+            'indicationOptions' => $indicationOptions, // Pasa las opciones al Blade
         ]);
     }
 
@@ -81,6 +106,11 @@ class ListDocuments extends Component
     }
 
     public function updatingFilterOriginType()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingFilterIndication() // Nuevo método para resetear paginación si se usa el filtro de indicación
     {
         $this->resetPage();
     }
