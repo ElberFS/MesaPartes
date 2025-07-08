@@ -23,20 +23,18 @@ class UpdateDocumentRequest extends FormRequest
      * Get the validation rules that apply to the request.
      * Obtiene las reglas de validación que se aplican a la solicitud.
      *
+     * @param int|null $documentId El ID del documento a ignorar para la validación de unicidad.
+     * Este parámetro será pasado desde el componente Livewire.
      * @return array<string, \Illuminate\Contracts\Validation\Rule|array|string>
      */
-    public function rules(): array
+    public function rules(?int $documentId = null): array
     {
-        // El ID del documento a ignorar en la validación 'unique' del código.
-        // Se obtiene del modelo Document inyectado en el componente Livewire.
-        $documentId = $this->document->id ?? null;
-
         return [
             'code' => [
                 'required',
                 'string',
                 'max:255',
-                // La regla unique ignora el ID del documento actual.
+                // La regla unique ahora usa el $documentId que se le pasa.
                 Rule::unique('documents', 'code')->ignore($documentId),
             ],
             'subject' => ['required', 'string', 'max:255'],

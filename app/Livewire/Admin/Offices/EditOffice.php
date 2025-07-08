@@ -28,26 +28,13 @@ class EditOffice extends Component
      */
     protected function rules()
     {
-        // Aquí obtienes las reglas de tu UpdateOfficeRequest.
-        // Asegúrate de que UpdateOfficeRequest maneje la regla 'unique' correctamente
-        // para ignorar la oficina actual que se está editando (usando $this->office->id).
+        // Aquí obtienes las reglas de tu UpdateOfficeRequest,
+        // pasando el ID de la oficina actual para que la regla 'unique' lo ignore.
         return (new UpdateOfficeRequest())->rules($this->office->id);
     }
 
-    /**
-     * Define los mensajes de validación personalizados para este componente Livewire.
-     * Estos son los mensajes que se usarán cuando se llame a $this->validate().
-     */
-    protected function messages()
-    {
-        // Define aquí tus mensajes personalizados en español para la edición.
-        return [
-            'name.required' => 'El nombre de la oficina es obligatorio.',
-            'name.string' => 'El nombre de la oficina debe ser una cadena de texto.',
-            'name.max' => 'El nombre de la oficina no puede exceder los 255 caracteres.',
-            'name.unique' => 'Ya existe otra oficina con este nombre.',
-        ];
-    }
+    // ELIMINADO: protected function messages()
+    // Los mensajes de validación ahora se definen exclusivamente en UpdateOfficeRequest.php
 
     /**
      * Actualiza la oficina en la base de datos.
@@ -57,7 +44,7 @@ class EditOffice extends Component
     public function update()
     {
         // Valida los datos. Livewire usará las reglas definidas en rules()
-        // y los mensajes en messages().
+        // y los mensajes definidos en el UpdateOfficeRequest.
         $this->validate();
 
         // Actualiza el nombre de la oficina usando el valor validado de $this->name.
