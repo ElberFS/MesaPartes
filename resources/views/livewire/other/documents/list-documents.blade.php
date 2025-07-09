@@ -42,7 +42,7 @@
             </select>
 
             {{-- Nuevo filtro por Indicación --}}
-            <select wire:model.live="filterIndication" class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline w-full">
+            <select wire:model.live="filterIndication" class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 w-full">
                 <option value="">Todas las Indicaciones</option>
                 @foreach ($indicationOptions as $key => $value)
                     <option value="{{ $key }}">{{ $value }}</option>
@@ -137,25 +137,22 @@
                                     {{-- Clases de estado construidas dinámicamente --}}
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                                         @php
-                                            $statusClasses = '';
-                                            if ($document->status === 'en_proceso') { // Updated to Spanish value
-                                                $statusClasses = 'bg-blue-100 text-blue-800';
-                                            } elseif ($document->status === 'respondido') { // Updated to Spanish value
-                                                $statusClasses = 'bg-purple-100 text-purple-800';
-                                            } else { // archivado (Updated to Spanish value)
-                                                $statusClasses = 'bg-gray-100 text-gray-800';
-                                            }
-                                        @endphp
-                                        {{ $statusClasses }}">
-                                        {{-- Display Spanish label for status --}}
-                                        @php
                                             $statusLabels = [
                                                 'en_proceso' => 'En Proceso',
                                                 'respondido' => 'Respondido',
                                                 'archivado' => 'Archivado',
                                             ];
-                                            echo $statusLabels[$document->status] ?? ucfirst(str_replace('_', ' ', $document->status));
+                                            $statusClasses = '';
+                                            if ($document->status === 'en_proceso') {
+                                                $statusClasses = 'bg-blue-100 text-blue-800';
+                                            } elseif ($document->status === 'respondido') {
+                                                $statusClasses = 'bg-purple-100 text-purple-800';
+                                            } else { // archivado
+                                                $statusClasses = 'bg-gray-100 text-gray-800';
+                                            }
                                         @endphp
+                                        {{ $statusClasses }}">
+                                        {{ $statusLabels[$document->status] ?? ucfirst(str_replace('_', ' ', $document->status)) }}
                                     </span>
                                 </td>
                                 {{-- Celda para Indicación --}}
@@ -189,6 +186,11 @@
                                     @endif
                                     <a href="{{ route('documents.edit', $document->id) }}"
                                        class="text-indigo-600 hover:text-indigo-900 mr-3" wire:navigate>Editar</a>
+                                    <a href="{{ route('responses.create', ['document' => $document->id]) }}"
+                                       class="text-green-600 hover:text-green-900 mr-3" wire:navigate>Responder</a>
+                                    {{-- Botón "Ver Respuestas" (restaurado a su función original) --}}
+                                    <a href="{{ route('responses.index', ['documentId' => $document->id]) }}"
+                                       class="text-purple-600 hover:text-purple-900 mr-3" wire:navigate>Ver Respuestas</a>
                                     <button wire:click="confirmDocumentDeletion({{ $document->id }})"
                                             class="text-red-600 hover:text-red-900">Eliminar</button>
                                 </td>

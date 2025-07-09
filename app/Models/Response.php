@@ -20,9 +20,25 @@ class Response extends Model
         'subject',
         'summary',
         'file_id',
+        // Campos de destino detallados
+        'destination_type',
         'destination_office_id',
+        'destination_organization_name',
+        'destination_contact_person',
+        'destination_contact_role',
+        // Fin campos de destino
         'is_final_response',
         'date',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'date' => 'date',
+        'is_final_response' => 'boolean',
     ];
 
     /**
@@ -44,8 +60,8 @@ class Response extends Model
     }
 
     /**
-     * Get the office that is the destination of the response.
-     * Obtener la oficina que es el destino de esta respuesta.
+     * Get the office that is the destination of the response (if internal destination).
+     * Obtener la oficina que es el destino de esta respuesta (si el destino es interno).
      */
     public function destinationOffice()
     {

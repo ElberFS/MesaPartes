@@ -152,3 +152,4 @@ class ListDocuments extends Component
         $this->documentToDeleteId = null;
     }
 }
+
