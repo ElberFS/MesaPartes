@@ -8,6 +8,7 @@ use Livewire\Component;
 use App\Http\Requests\StoreUserRequest; // Importa el Form Request para la validación
 use Illuminate\Support\Facades\Hash; // Para hashear contraseñas
 use Spatie\Permission\Models\Role; // Importa el modelo Role de Spatie
+use Illuminate\Validation\ValidationException; // Importar para manejar excepciones de validación
 
 class CreateUser extends Component
 {
@@ -27,38 +28,59 @@ class CreateUser extends Component
      */
     public function mount()
     {
-        $this->roles = Role::pluck('name')->toArray(); // Obtiene solo los nombres de los roles
+        // Obtiene solo los nombres de los roles.
+        // Si necesitas el ID del rol, quizás debas almacenar objetos Role o un array asociativo [id => name].
+        // Para este caso, 'name' es suficiente ya que Spatie asigna por nombre.
+        $this->roles = Role::pluck('name')->toArray();
         $this->offices = Office::all(); // Obtiene todas las oficinas
     }
 
     /**
      * Guarda el nuevo usuario en la base de datos.
-     *
-     * @param  \App\Http\Requests\StoreUserRequest  $request  El Form Request para la validación.
      */
-    public function save(StoreUserRequest $request)
+    public function save()
     {
-        $validatedData = $request->validated();
+        // 1. Instanciar el Form Request para obtener sus reglas de validación y mensajes personalizados.
+        $storeUserRequest = new StoreUserRequest();
 
-        // Crea el usuario
-        $user = User::create([
-            'name' => $validatedData['name'],
-            'email' => $validatedData['email'],
-            'password' => Hash::make($validatedData['password']), // Hashea la contraseña
-            'office_id' => $validatedData['selectedOfficeId'], // Asigna la oficina
-        ]);
+        try {
+            // 2. Realizar la validación de Livewire, pasando las reglas y mensajes del Form Request.
+            // Livewire automáticamente validará las propiedades públicas del componente.
+            $validatedData = $this->validate(
+                $storeUserRequest->rules(),
+                $storeUserRequest->messages()
+            );
 
-        // Asigna el rol al usuario
-        $user->assignRole($validatedData['selectedRole']);
+            // 3. Crea el usuario con los datos validados.
+            $user = User::create([
+                'name' => $validatedData['name'],
+                'email' => $validatedData['email'],
+                'password' => Hash::make($validatedData['password']), // Hashea la contraseña
+                'office_id' => $validatedData['selectedOfficeId'], // Asigna la oficina
+            ]);
 
-        // Resetea las propiedades del formulario
-        $this->reset(['name', 'email', 'password', 'password_confirmation', 'selectedRole', 'selectedOfficeId']);
+            // 4. Asigna el rol al usuario.
+            $user->assignRole($validatedData['selectedRole']);
 
-        // Emite un mensaje de sesión flash
-        session()->flash('status', 'Usuario creado exitosamente y rol asignado.');
+            // 5. Resetea las propiedades del formulario después de un registro exitoso.
+            $this->reset(['name', 'email', 'password', 'password_confirmation', 'selectedRole', 'selectedOfficeId']);
 
-        // Opcional: Redirigir a la lista de usuarios
-        return $this->redirect(route('users.index'), navigate: true);
+            // 6. Emite un mensaje de sesión flash.
+            session()->flash('status', 'Usuario creado exitosamente y rol asignado.');
+
+            // 7. Redirige a la lista de usuarios.
+            return $this->redirect(route('users.index'), navigate: true);
+
+        } catch (ValidationException $e) {
+            // Livewire maneja la visualización de errores automáticamente en la vista.
+            // Aquí puedes logear la excepción si es necesario para depuración.
+            // Log::error('Error de validación al crear usuario: ' . $e->getMessage(), $e->errors());
+            throw $e; // Re-lanza la excepción para que Livewire la capture y muestre los errores.
+        } catch (\Exception $e) {
+            // Captura cualquier otra excepción inesperada.
+            session()->flash('error', 'Ocurrió un error inesperado al crear el usuario: ' . $e->getMessage());
+            // Log::error('Error inesperado al crear usuario: ' . $e->getMessage(), ['exception' => $e]);
+        }
     }
 
     /**

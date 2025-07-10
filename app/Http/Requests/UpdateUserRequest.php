@@ -24,14 +24,15 @@ class UpdateUserRequest extends FormRequest
      * Get the validation rules that apply to the request.
      * Obtiene las reglas de validación que se aplican a la solicitud.
      *
+     * @param int|null $userId El ID del usuario a ignorar para la validación de unicidad.
+     * Este parámetro será pasado desde el componente Livewire.
      * @return array<string, \Illuminate\Contracts\Validation\Rule|array|string>
      */
-    public function rules(): array
+    public function rules(?int $userId = null): array
     {
-        // El ID del usuario a ignorar en la validación 'unique' del email.
-        // Asumimos que el ID del usuario se pasa como un parámetro de ruta (ej. /users/{user})
-        // o que el componente Livewire tiene una propiedad $user (modelo) de donde se puede obtener el ID.
-        $userId = $this->route('user') ? $this->route('user')->id : null;
+        // Si $userId no se pasa (ej. en una ruta HTTP directa), intenta obtenerlo de la ruta.
+        // Para Livewire, lo pasaremos directamente.
+        $idToIgnore = $userId ?? ($this->route('user') ? $this->route('user')->id : null);
 
         return [
             'name' => ['required', 'string', 'max:255'],
@@ -41,7 +42,7 @@ class UpdateUserRequest extends FormRequest
                 'email',
                 'max:255',
                 // La regla unique ignora el ID del usuario actual.
-                Rule::unique('users', 'email')->ignore($userId),
+                Rule::unique('users', 'email')->ignore($idToIgnore),
             ],
             // Contraseña es opcional para la actualización. Si se proporciona, se valida.
             'password' => ['nullable', 'string', Password::defaults(), 'confirmed'],

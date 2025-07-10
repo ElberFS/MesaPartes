@@ -8,16 +8,11 @@ use App\Livewire\Admin\Offices\EditOffice;
 use App\Livewire\Admin\Users\ListUsers;
 use App\Livewire\Admin\Users\CreateUser;
 use App\Livewire\Admin\Users\EditUser;
-
-// Componentes de Documentos
 use App\Livewire\Other\Documents\CreateDocument;
 use App\Livewire\Other\Documents\ListDocuments;
 use App\Livewire\Other\Documents\EditDocument;
-use App\Livewire\Other\Documents\ShowDocument; // Importa ShowDocument para su uso en rutas de documentos
-
+use App\Livewire\Other\Documents\ShowDocument;
 use App\Http\Controllers\DocumentController;
-
-// Componentes de Respuestas (asegúrate que el namespace sea 'Responses' en plural)
 use App\Livewire\Other\Responses\CreateResponse;
 use App\Livewire\Other\Responses\EditResponse;
 use App\Livewire\Other\Responses\ListResponses;
@@ -54,22 +49,29 @@ Route::middleware(['role:administrador'])->group(function () {
 
     // Rutas para Respuestas
     Route::prefix('admin/responses')->name('responses.')->group(function () {
-        // ¡CAMBIO AQUÍ! Acepta un documentId opcional como parámetro de ruta
         Route::get('/{documentId?}', ListResponses::class)->name('index');
-        Route::get('/create/{document?}', CreateResponse::class)->name('create'); // document es opcional
-        Route::get('/{response}/edit', EditResponse::class)->name('edit');
+    });
+
+    // Rutas para Documentos
+    Route::prefix('admin/documents')->name('documents.')->group(function () {
+        Route::get('/', ListDocuments::class)->name('index');
     });
 });
 
 // Este grupo de rutas es para 'secretaria' y 'administrador'
 Route::middleware(['role:secretaria|administrador'])->group(function () {
     Route::prefix('admin/documents')->name('documents.')->group(function () {
-        Route::get('/', ListDocuments::class)->name('index');
         Route::get('/create', CreateDocument::class)->name('create');
         Route::get('/{document}/edit', EditDocument::class)->name('edit');
         Route::get('/{document}/view-file', [DocumentController::class, 'viewFile'])->name('view-file');
         Route::get('/{document}', ShowDocument::class)->name('show');
     });
+
+    Route::prefix('admin/responses')->name('responses.')->group(function () {
+        Route::get('/create/{document?}', CreateResponse::class)->name('create');
+        Route::get('/{response}/edit', EditResponse::class)->name('edit');
+    });
+
 });
 
 
