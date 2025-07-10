@@ -2,27 +2,31 @@
 
 namespace App\Livewire\Other\Documents;
 
-use App\Models\Document; // Modelo Document
-use App\Models\Office; // Asegúrate de importar Office si lo usas para filtros o detalles
-use App\Models\Priority; // Asegúrate de importar Priority si lo usas para filtros
-use App\Models\File as DocumentFile; // Asegúrate de importar File si lo usas para eliminar archivos
+use App\Models\Document;
+use App\Models\Office;
+use App\Models\Priority;
+use App\Models\File as DocumentFile;
 use Livewire\Component;
-use Livewire\WithPagination; // Trait para paginación
-use Illuminate\Support\Facades\Storage; // Para eliminar archivos del almacenamiento
+use Livewire\WithPagination;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\QueryException;
 
 class ListDocuments extends Component
 {
-    use WithPagination; // Habilita la paginación
+    use WithPagination;
 
-    public $search = ''; // Término de búsqueda general
-    public $perPage = 10; // Elementos por página
-    public $filterStatus = ''; // Filtro por estado
-    public $filterPriority = ''; // Filtro por prioridad
-    public $filterOriginType = ''; // Filtro por tipo de origen
-    public $filterIndication = ''; // Nuevo filtro por indicación (opcional, si se desea añadir un selector)
+    public $search = '';
+    public $perPage = 10;
 
-    public $confirmingDocumentDeletion = false; // Estado para el modal de confirmación
-    public $documentToDeleteId = null; // ID del documento a eliminar
+    public $filterOriginType = '';
+    public $filterIndication = '';
+
+    // Propiedades para el ordenamiento
+    public $sortColumn = 'registration_date';
+    public $sortDirection = 'desc';
+
+    public $confirmingDocumentDeletion = false;
+    public $documentToDeleteId = null;
 
     /**
      * Renderiza la vista Blade asociada.
@@ -31,76 +35,100 @@ class ListDocuments extends Component
     public function render()
     {
         $documents = Document::query()
-            // Carga relaciones necesarias.
             ->with(['originOffice', 'file', 'priority'])
             ->when($this->search, function ($query) {
-                $query->where('code', 'like', '%' . $this->search . '%')
-                      ->orWhere('subject', 'like', '%' . $this->search . '%')
-                      ->orWhere('reference', 'like', '%' . $this->search . '%')
-                      // Nuevos campos de búsqueda para origen externo
-                      ->orWhere('organization_name', 'like', '%' . $this->search . '%')
-                      ->orWhere('external_contact_person', 'like', '%' . $this->search . '%')
-                      ->orWhere('external_contact_role', 'like', '%' . $this->search . '%')
-                      ->orWhere('indication', 'like', '%' . $this->search . '%'); // Añadido el campo 'indication' a la búsqueda
-            })
-            ->when($this->filterStatus, function ($query) {
-                $query->where('status', $this->filterStatus);
-            })
-            ->when($this->filterPriority, function ($query) {
-                $query->where('priority_id', $this->filterPriority);
+                $query->where(function ($subQuery) { // Envuelve las condiciones de búsqueda en un grupo
+                    $subQuery->where('code', 'like', '%' . $this->search . '%')
+                             ->orWhere('subject', 'like', '%' . $this->search . '%')
+                             ->orWhere('reference', 'like', '%' . $this->search . '%')
+                             // Campos de origen externo
+                             ->orWhere('organization_name', 'like', '%' . $this->search . '%')
+                             ->orWhere('external_contact_person', 'like', '%' . $this->search . '%')
+                             ->orWhere('external_contact_role', 'like', '%' . $this->search . '%')
+                             ->orWhere('indication', 'like', '%' . $this->search . '%')
+                             // Búsqueda por nombre de oficina de origen (relacionado)
+                             ->orWhereHas('originOffice', function ($officeQuery) {
+                                 $officeQuery->where('name', 'like', '%' . $this->search . '%');
+                             });
+                });
             })
             ->when($this->filterOriginType, function ($query) {
                 $query->where('origin_type', $this->filterOriginType);
             })
-            ->when($this->filterIndication, function ($query) { // Nuevo filtro si se decide usar
+            ->when($this->filterIndication, function ($query) {
                 $query->where('indication', $this->filterIndication);
-            })
-            ->orderBy('registration_date', 'desc') // Ordena por fecha de registro
-            ->paginate($this->perPage);
+            });
 
-        // Se pasan las prioridades para el filtro en la vista
-        $priorities = Priority::all(); // Asegúrate de que este modelo esté importado
+        // Aplicar ordenamiento dinámico
+        // Para la columna de origen, necesitamos un manejo especial
+        if ($this->sortColumn === 'origin') {
+            // Ordenar por tipo de origen y luego por el nombre de la oficina o la organización
+            $documents->orderBy('origin_type', $this->sortDirection)
+                      ->orderBy(
+                          Document::select('name')
+                              ->from('offices')
+                              ->whereColumn('offices.id', 'documents.origin_office_id'),
+                          $this->sortDirection
+                      )
+                      ->orderBy('organization_name', $this->sortDirection);
+        } else {
+            $documents->orderBy($this->sortColumn, $this->sortDirection);
+        }
 
-        // Opciones para el campo 'indication' (si se desea un filtro select)
+        $documents = $documents->paginate($this->perPage);
+
+
+        $priorities = Priority::all();
+
         $indicationOptions = [
-            'tomar_conocimiento',
-            'acciones_necesarias',
-            'opinar',
-            'preparar_respuesta',
-            'informar',
-            'coordinar_accion',
-            'difundir',
-            'preparar_resolucion',
-            'remitir_antecedentes',
-            'archivo_provisional',
-            'devolver_oficina_origen',
-            'atender',
-            'acumular_respuestas',
-            'archivo',
-            'acumular_al_expediente',
+            'tomar_conocimiento' => 'Tomar Conocimiento',
+            'acciones_necesarias' => 'Acciones Necesarias',
+            'opinar' => 'Opinar',
+            'preparar_respuesta' => 'Preparar Respuesta',
+            'informar' => 'Informar',
+            'coordinar_accion' => 'Coordinar Acción',
+            'difundir' => 'Difundir',
+            'preparar_resolucion' => 'Preparar Resolución',
+            'remitir_antecedentes' => 'Remitir Antecedentes',
+            'archivo_provisional' => 'Archivo Provisional',
+            'devolver_oficina_origen' => 'Devolver Oficina de Origen',
+            'atender' => 'Atender',
+            'acumular_respuestas' => 'Acumular Respuestas',
+            'archivo' => 'Archivo',
+            'acumular_al_expediente' => 'Acumular al Expediente',
+        ];
+
+        $statusLabels = [
+            'en_proceso' => 'En Proceso',
+            'respondido' => 'Respondido',
+            'archivado' => 'Archivado',
         ];
 
         return view('livewire.other.documents.list-documents', [
             'documents' => $documents,
             'priorities' => $priorities,
-            'indicationOptions' => $indicationOptions, // Pasa las opciones al Blade
+            'indicationOptions' => $indicationOptions,
+            'statusLabels' => $statusLabels,
         ]);
     }
 
     /**
-     * Reinicia la paginación cuando cambia el término de búsqueda o filtros.
+     * Alterna la columna y dirección de ordenamiento.
+     *
+     * @param string $column La columna por la que ordenar.
      */
+    public function sortBy($column)
+    {
+        if ($this->sortColumn === $column) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortColumn = $column;
+            $this->sortDirection = 'asc';
+        }
+        $this->resetPage();
+    }
+
     public function updatingSearch()
-    {
-        $this->resetPage();
-    }
-
-    public function updatingFilterStatus()
-    {
-        $this->resetPage();
-    }
-
-    public function updatingFilterPriority()
     {
         $this->resetPage();
     }
@@ -110,7 +138,7 @@ class ListDocuments extends Component
         $this->resetPage();
     }
 
-    public function updatingFilterIndication() // Nuevo método para resetear paginación si se usa el filtro de indicación
+    public function updatingFilterIndication()
     {
         $this->resetPage();
     }
@@ -137,12 +165,12 @@ class ListDocuments extends Component
                 try {
                     // Eliminar el archivo asociado si existe
                     if ($document->file) {
-                        Storage::disk('public')->delete($document->file->path); // Usar la fachada Storage
-                        $document->file->delete(); // Elimina el registro del archivo de la DB
+                        Storage::disk('public')->delete($document->file->path);
+                        $document->file->delete();
                     }
                     $document->delete();
                     session()->flash('status', 'Documento eliminado exitosamente.');
-                } catch (\Illuminate\Database\QueryException $e) {
+                } catch (QueryException $e) {
                     session()->flash('error', 'No se puede eliminar el documento debido a elementos asociados (ej. respuestas, seguimientos).');
                 }
             }
@@ -152,4 +180,3 @@ class ListDocuments extends Component
         $this->documentToDeleteId = null;
     }
 }
-
