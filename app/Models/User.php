@@ -62,4 +62,31 @@ class User extends Authenticatable
             ->map(fn ($word) => Str::substr($word, 0, 1))
             ->implode('');
     }
+
+        /**
+     * Oficinas a las que pertenece el usuario
+     */
+    public function offices()
+    {
+        return $this->belongsToMany(Office::class, 'office_user')
+            ->withPivot(['is_boss', 'assigned_at'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Oficinas donde el usuario es jefe
+     */
+    public function bossOffices()
+    {
+        return $this->offices()->wherePivot('is_boss', true);
+    }
+
+    /**
+     * Verifica si el usuario pertenece a una oficina
+     */
+    public function belongsToOffice(int $officeId): bool
+    {
+        return $this->offices()->where('offices.id', $officeId)->exists();
+    }
+
 }
