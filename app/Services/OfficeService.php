@@ -3,50 +3,58 @@
 namespace App\Services;
 
 use App\Models\Office;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class OfficeService
 {
-    public function createOffice(array $data): Office
+    public function __construct(
+        protected Office $model
+    ) {}
+
+    public function getAll(int $perPage = 10, string $search = ''): LengthAwarePaginator
     {
-        return Office::create([
-            'name' => $data['name'],
-            'acronym' => strtoupper($data['acronym']), // Aseguramos mayúsculas
-            'is_active' => $data['is_active'] ?? true,
-        ]);
+        return $this->model->query()
+            ->when($search, function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                      ->orWhere('acronym', 'like', "%{$search}%");
+            })
+            ->latest()
+            ->paginate($perPage);
+    }
+
+    public function getActive(): \Illuminate\Database\Eloquent\Collection
+    {
+        return $this->model->where('is_active', true)->get();
+    }
+
+    public function create(array $data): Office
+    {
+        return DB::transaction(function () use ($data) {
+            return $this->model->create($data);
+        });
+    }
+
+    public function update(Office $office, array $data): Office
+    {
+        return DB::transaction(function () use ($office, $data) {
+            $office->update($data);
+            return $office->refresh();
+        });
+    }
+
+    public function delete(Office $office): bool
+    {
+        return DB::transaction(function () use ($office) {
+            return $office->delete();
+        });
     }
     
-    public function toggleStatus(Office $office): bool
+    public function toggleStatus(Office $office): Office
     {
-        // Activar/Desactivar oficina
-        $office->update(['is_active' => !$office->is_active]);
-        return $office->is_active;
-    }
-
-    public function updateOffice(Office $office, array $data): Office
-    {
-        $office->update([
-            'name' => $data['name'],
-            'acronym' => strtoupper($data['acronym']),
-            'is_active' => $data['is_active'] ?? $office->is_active,
-        ]);
-        
-        return $office;
-    }
-
-    /**
-     * Eliminar oficina (Solo si está vacía).
-     */
-    public function deleteOffice(Office $office): void
-    {
-        // 1. Validación de integridad
-        if ($office->users()->exists()) {
-            throw new \Exception("No puedes eliminar una oficina que tiene usuarios asignados. Primero reasígnalos.");
-        }
-
-        if ($office->documents()->exists()) { // Asumiendo relación documents() en el modelo Office
-            throw new \Exception("No puedes eliminar una oficina que tiene documentos históricos. Mejor desactívala.");
-        }
-
-        $office->delete();
+        return DB::transaction(function () use ($office) {
+            $office->update(['is_active' => !$office->is_active]);
+            return $office;
+        });
     }
 }

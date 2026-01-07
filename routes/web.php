@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
+use App\Livewire\Office\OfficeManager;
 
 Route::get('/', function () {
     return view('welcome');
@@ -18,6 +19,8 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/profile', 'settings.profile')->name('profile.edit');
     Volt::route('settings/password', 'settings.password')->name('user-password.edit');
     Volt::route('settings/appearance', 'settings.appearance')->name('appearance.edit');
+
+    Route::get('offices', OfficeManager::class)->name('offices');
 
     Volt::route('settings/two-factor', 'settings.two-factor')
         ->middleware(
