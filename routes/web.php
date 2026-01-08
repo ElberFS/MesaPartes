@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
 use App\Livewire\Office\OfficeManager;
+use App\Livewire\User\UserManager;
 
 Route::get('/', function () {
     return view('welcome');
@@ -21,6 +22,7 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/appearance', 'settings.appearance')->name('appearance.edit');
 
     Route::get('offices', OfficeManager::class)->name('offices');
+    Route::get('Users',UserManager::class)->name('users');
 
     Volt::route('settings/two-factor', 'settings.two-factor')
         ->middleware(
