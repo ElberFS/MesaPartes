@@ -16,6 +16,7 @@
                     <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
                     <flux:navlist.item icon="building-office" :href="route('offices')" :current="request()->routeIs('offices')" wire:navigate>{{ __('Offices') }}</flux:navlist.item>
                     <flux:navlist.item icon="users" :href="route('users')" :current="request()->routeIs('users')" wire:navigate>{{ __('Users') }}</flux:navlist.item>
+                    <flux:navlist.item icon="document-text" :href="route('documents')" :current="request()->routeIs('documents')" wire:navigate>{{ __('Documentos') }}</flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
 

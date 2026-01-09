@@ -5,6 +5,7 @@ use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
 use App\Livewire\Office\OfficeManager;
 use App\Livewire\User\UserManager;
+use App\Livewire\Document\DocumentManager;
 
 Route::get('/', function () {
     return view('welcome');
@@ -23,6 +24,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('offices', OfficeManager::class)->name('offices');
     Route::get('Users',UserManager::class)->name('users');
+    Route::get('Document',DocumentManager::class)->name('documents');
 
     Volt::route('settings/two-factor', 'settings.two-factor')
         ->middleware(
