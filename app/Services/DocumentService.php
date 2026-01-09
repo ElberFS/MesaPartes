@@ -93,4 +93,14 @@ class DocumentService
             return $document->delete();
         });
     }
+
+
+    public function previewCode(Office $office): string
+    {
+        return $this->codeGenerator->generate(
+            prefix: 'D',
+            tableName: 'documents',
+            office: $office
+        );
+    }
 }

@@ -98,18 +98,22 @@
     <x-modal wire:model="showModal" :title="$isEditing ? 'Editar documento' : 'Nuevo documento'">
         <form wire:submit.prevent="save" class="grid gap-4">
 
-            @if ($isEditing)
-                <div>
-                    <label class="text-sm font-medium">Código</label>
-                    <input
-                        type="text"
-                        value="{{ optional($documents->firstWhere('id', $documentId))->code }}"
-                        disabled
-                        readonly
-                        class="w-full rounded-lg border bg-neutral-100 p-2.5 font-mono text-sm text-neutral-600 cursor-not-allowed">
-                </div>
-            @endif
+            {{-- CÓDIGO --}}
+            <div>
+                <label class="text-sm font-medium">Código</label>
 
+                <input
+                    type="text"
+                    value="{{ $isEditing
+                        ? optional($documents->firstWhere('id', $documentId))->code
+                        : $previewCode }}"
+                    readonly
+                    disabled
+                    class="w-full rounded-lg border bg-neutral-100 p-2.5 font-mono text-sm text-neutral-600 cursor-not-allowed">
+            </div>
+
+
+            {{-- OFICINA --}}
             <div>
                 <label class="text-sm font-medium">Oficina</label>
                 <input
@@ -120,24 +124,31 @@
                     class="w-full rounded-lg border bg-neutral-100 p-2.5 text-sm text-neutral-600 cursor-not-allowed">
             </div>
 
+            {{-- ASUNTO --}}
             <div>
                 <label class="text-sm font-medium">Asunto</label>
                 <input
                     type="text"
                     wire:model.defer="subject"
                     class="w-full rounded-lg border p-2.5">
-                @error('subject') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
+                @error('subject')
+                    <span class="text-xs text-red-500">{{ $message }}</span>
+                @enderror
             </div>
 
+            {{-- DESCRIPCIÓN --}}
             <div>
                 <label class="text-sm font-medium">Descripción</label>
                 <textarea
                     wire:model.defer="description"
                     rows="3"
                     class="w-full rounded-lg border p-2.5"></textarea>
-                @error('description') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
+                @error('description')
+                    <span class="text-xs text-red-500">{{ $message }}</span>
+                @enderror
             </div>
 
+            {{-- ARCHIVO --}}
             <div>
                 <label class="text-sm font-medium">Archivo (PDF)</label>
                 <input
@@ -145,9 +156,12 @@
                     wire:model="file"
                     accept="application/pdf"
                     class="w-full rounded-lg border p-2.5">
-                @error('file') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
+                @error('file')
+                    <span class="text-xs text-red-500">{{ $message }}</span>
+                @enderror
             </div>
 
+            {{-- BOTONES --}}
             <div class="flex justify-end gap-3 pt-4">
                 <button
                     type="button"
